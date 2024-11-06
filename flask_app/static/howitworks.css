@@ -1,0 +1,23 @@
+
+body{
+    font-family: "Open Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;  
+    height: 100vh;
+    background: linear-gradient(180deg, rgba(143,135,225,1) 0%, rgba(247,184,210,1) 100%);
+}
+
+
+
+.container{
+    width: 90%;
+    justify-self: center;
+    justify-items: center;
+    
+}
+
+.features-container{
+    width: 90%;
+    justify-self: center;
+    text-align: left;
+}
