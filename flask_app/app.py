@@ -1,6 +1,6 @@
 from flask import Flask, render_template
-import RPi.GPIO as GPIO
-from smbus2 import SMBus # For I2C
+#import RPi.GPIO as GPIO
+#from smbus2 import SMBus # For I2C
 import time
 
 
@@ -37,9 +37,9 @@ def alert():
 
     
 if __name__ == '__main__':
-    try:
+#   try:
         app.run(host='0.0.0.0', port=5000)
-    finally:
-        GPIO.cleanup()  # Clean up GPIO on exit
+#    finally:
+#        GPIO.cleanup()  # Clean up GPIO on exit
 
 
