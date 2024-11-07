@@ -3,21 +3,64 @@ body{
     font-family: "Open Sans", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;  
-    height: 100vh;
-    background: linear-gradient(180deg, rgba(143,135,225,1) 0%, rgba(247,184,210,1) 100%);
-}
-
-
-
-.container{
-    width: 90%;
-    justify-self: center;
-    justify-items: center;
+    height: 100%;
+    background: white;
+     max-width: clamp(320px, 90%, 1000px);
+    font-size: 1.25rem;
+    margin: auto;
     
+
 }
 
-.features-container{
-    width: 90%;
-    justify-self: center;
-    text-align: left;
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    height: 100%;
+}
+
+h1.roboto-regular {
+    text-align: center;
+    font-size: 2.5rem;
+}
+
+.features-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: start;
+    padding-top: 3rem;
+}
+
+.feature {
+    border-bottom: 2px solid #ccc;
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    align-items: center;
+    max-height: 600px;
+    min-height: 300px;
+    padding-bottom: 3rem;
+}
+
+
+.feature:last-child {
+    border-bottom: none; /* Remove border on the last item */
+}
+
+.feature-image img {
+    max-width: 80%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.feature-text h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.feature-text p {
+    font-size: 1rem;
+    color: #666;
 }
