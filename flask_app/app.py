@@ -60,13 +60,8 @@ THRESHOLD_HIGH = 25000
 def control_servo(turn_open):
     if turn_open:
         servo.ChangeDutyCycle(10)  # Full speed clockwise (2.0ms pulse)
-        time.sleep(2)  # Run at full speed for 2 seconds
-        servo.ChangeDutyCycle(7.5)  # Stop servo (stationary)
     else:
         servo.ChangeDutyCycle(5)  # Full speed counter-clockwise (1.0ms pulse)
-        time.sleep(2)  # Run at full speed for 2 seconds
-        servo.ChangeDutyCycle(7.5)  # Stop servo (stationary)
-    time.sleep(1)  # Small delay before next command
 
 # Function to read light level from the sensor
 def read_light_level():
@@ -99,10 +94,11 @@ def main():
                 # Check light level and control the servo based on threshold
                 if lux >= THRESHOLD_HIGH:
                     control_servo(turn_open=True)  # Open servo when outside threshold
-                    time.sleep(1)  # Delay for 1 second
+                    print("Lux is above threshold, rotating clockwise")
                 else:
                     control_servo(turn_open=False)  # Close servo when within threshold
-                    time.sleep(1)  # Delay for 1 second
+                    print("Lux is below threshold, rotating counter-clockwise")
+
             else:
                 print("Error: Unable to read sensor.")
                 
@@ -115,6 +111,7 @@ def main():
         print("Program interrupted. Exiting...")
 
     finally:
+        servo.ChangeDutyCycle(7.5)  # Stop servo (set it to neutral position)
         servo.stop()
         GPIO.cleanup()  # Clean up GPIO on exit
 
