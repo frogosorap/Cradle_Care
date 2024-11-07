@@ -59,11 +59,14 @@ THRESHOLD_HIGH = 25000
 # Function to control the servo motor
 def control_servo(turn_open):
     if turn_open:
-        servo.start(7.5)  # Adjust pulse width as needed to turn
+        servo.ChangeDutyCycle(10)  # Full speed clockwise (2.0ms pulse)
+        time.sleep(2)  # Run at full speed for 2 seconds
+        servo.ChangeDutyCycle(7.5)  # Stop servo (stationary)
     else:
-        servo.start(2.5)  # Adjust pulse width as needed to turn back
-    time.sleep(1)  # Delay for servo to move
-    servo.stop()
+        servo.ChangeDutyCycle(5)  # Full speed counter-clockwise (1.0ms pulse)
+        time.sleep(2)  # Run at full speed for 2 seconds
+        servo.ChangeDutyCycle(7.5)  # Stop servo (stationary)
+    time.sleep(1)  # Small delay before next command
 
 # Function to read light level from the sensor
 def read_light_level():
@@ -110,6 +113,10 @@ def main():
 
     except KeyboardInterrupt:
         print("Program interrupted. Exiting...")
+
+    finally:
+        servo.stop()
+        GPIO.cleanup()  # Clean up GPIO on exit
 
 if __name__ == '__main__':
     main()
