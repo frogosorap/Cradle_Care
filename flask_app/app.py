@@ -94,10 +94,10 @@ def main():
                 # Check light level and control the servo based on threshold
                 if lux >= THRESHOLD_HIGH:
                     control_servo(turn_open=True)  # Open servo when outside threshold
-                    print("Lux is above threshold, rotating clockwise")
+                    print("Lux is above threshold, rotating counter-clockwise")
                 else:
                     control_servo(turn_open=False)  # Close servo when within threshold
-                    print("Lux is below threshold, rotating counter-clockwise")
+                    print("Lux is below threshold, rotating clockwise")
 
             else:
                 print("Error: Unable to read sensor.")
@@ -114,6 +114,55 @@ def main():
         servo.ChangeDutyCycle(7.5)  # Stop servo (set it to neutral position)
         servo.stop()
         GPIO.cleanup()  # Clean up GPIO on exit
+
+
+
+# Grove Sound Sensor
+#--------------------------------
+
+import spidev
+import time
+
+# Set up SPI communication
+spi = spidev.SpiDev()
+spi.open(0, 0)  # Open bus 0, device 0 (CE0)
+spi.max_speed_hz = 1350000  # Set the SPI clock speed
+
+# Function to read data from MCP3008
+def read_channel(channel):
+    try:
+        # Send start bit, single-ended bit, and channel bits
+        adc = spi.xfer2([1, (8 + channel) << 4, 0])
+        # Process returned bits to get the 10-bit ADC value
+        data = ((adc[1] & 3) << 8) + adc[2]
+        return data
+    except IOError as e:
+        print("SPI Communication Error:", e)
+        return None  # Return None if there's an error in reading data
+
+try:
+    while True:
+        # Read sound level from channel 0 (where SIG is connected)
+        sound_level = read_channel(0)
+        
+        # Check if sound_level is None (error in reading)
+        if sound_level is not None:
+            print("Sound Level:", sound_level)
+        else:
+            print("Failed to read sound level. Retrying...")
+        
+        time.sleep(1)  # Adjust the delay as needed
+
+except KeyboardInterrupt:
+    print("Program stopped by user")
+
+except Exception as e:
+    print("An unexpected error occurred:", e)
+
+finally:
+    spi.close()
+
+
 
 if __name__ == '__main__':
     main()
