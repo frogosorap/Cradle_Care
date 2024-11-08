@@ -7,6 +7,10 @@
 </head>
 <body>
     <h1>Light Sensor Reading</h1>
-    <p>Current Light Level: {{ lux }} lux</p>
+    <ul>
+        {% for reading in lux_readings %}
+            <li>{{ reading }} lux</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

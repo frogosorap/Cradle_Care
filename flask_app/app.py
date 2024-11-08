@@ -1,8 +1,14 @@
 from flask import Flask, render_template,session, abort, redirect, request
 import RPi.GPIO as GPIO
 # from smbus2 import SMBus # For I2C
-import time
+import json 
+import time, threading
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pubnub import PubNub
+from pubnub.callbacks import SubscribeCallback
+from pubnub.enums import PNStatusCategory, PNOperationType
 
+my_channel = "Cradle_Care_Channel"
 
 import requests
 import pathlib
@@ -15,11 +21,43 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
+pnconfig = PNConfiguration()
+pnconfig.subscribe_key = os.environ.get('PUBNUB_SUBSCRIBE_KEY')
+pnconfig.publish_key = os.environ.get('PUBNUB_PUBLISH_KEY')
+pnconfig.user_id = "cradle_care_user"
+pubnub = PubNub(pnconfig)
+
+def my_publish_callback(envelope, status):
+    if not status.is_error():
+        pass
+    else:
+        pass
+
+class MySubscribeCallback(SubscribeCallback):
+    def presence(self, pubnub, presence):
+        pass
+
+    def status(self, pubnub, status):
+        if status.category == PNStatusCategory.PNUnexpectedDisconnectCategory:
+            pass
+        elif status.category == PNStatusCategory.PNConnectedCategory:
+            pubnub.publish().channel(my_channel).message('Connected to Pubnub').pn_async(my_publish_callback)
+        elif status.category == PNStatusCategory.PNDecryptionErrorCategory:
+            pass
+
+    def message(self, pubnub, message):
+        print(message.message)
+
+
+pubnub.add_listener(MySubscribeCallback())
+
+def publish(channel, message):
+    pubnub.publish().channel(channel).message(message).pn_async(my_publish_callback)
+
+
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY")
-
 # app.secret_key = "cradle_care_jrmy_secret_key_7923"
-
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -44,6 +82,8 @@ def login_is_required(function):
 @app.route('/')
 def landingpage():
     return render_template('landingpage.html')
+
+lux_readings = []  # Global list to store lux readings
 
 @app.route('/light')
 def light():
@@ -116,7 +156,6 @@ def alert():
 #Ambient Light Sensor
 #--------------------------------
 import smbus2
-import time
 
 # Define the I2C bus (Raspberry Pi uses bus 1 for I2C)
 bus = smbus2.SMBus(1)
@@ -167,14 +206,17 @@ def main():
             
             if lux is not None:
                 print(f"Light Level: {lux} lux")
+                lux_readings.append(lux)  # Append each reading to the list
                 
                 # Check light level and control the servo based on threshold
                 if lux >= THRESHOLD_HIGH:
                     control_servo(turn_open=True)  # Open servo when outside threshold
                     print("Lux is above threshold, rotating clockwise")
+                    publish(my_channel, {'light':'too bright'})
                 else:
                     control_servo(turn_open=False)  # Close servo when within threshold
                     print("Lux is below threshold, rotating counter-clockwise")
+                    publish(my_channel, {'light':'just right'})
 
             else:
                 print("Error: Unable to read sensor.")
@@ -193,22 +235,26 @@ def main():
         servo.ChangeDutyCycle(7.5)  # Stop servo (set it to neutral position)
         servo.stop()
         GPIO.cleanup()  # Clean up GPIO on exit
+
 # Grove Sound Sensor
 #--------------------------------
-
 import spidev
 import time
 
 # Set up SPI communication
 spi = spidev.SpiDev()
-spi.open(0, 0)  # Open bus 0, device 0 (CE0)
-spi.max_speed_hz = 1350000  # Set the SPI clock speed
+spi.open(0, 1)  # Open bus 0, device 1 (CS1)
+spi.max_speed_hz = 500000  # Lower SPI clock speed for stability (500 kHz)
 
 # Function to read data from MCP3008
 def read_channel(channel):
     try:
         # Send start bit, single-ended bit, and channel bits
         adc = spi.xfer2([1, (8 + channel) << 4, 0])
+
+        # Debug print to show raw ADC response
+        print("Raw ADC response:", adc)
+
         # Process returned bits to get the 10-bit ADC value
         data = ((adc[1] & 3) << 8) + adc[2]
         return data
@@ -218,34 +264,33 @@ def read_channel(channel):
 
 try:
     while True:
-        # Read sound level from channel 0 (where SIG is connected)
-        sound_level = read_channel(0)
-        
-        # Check if sound_level is None (error in reading)
-        if sound_level is not None:
-            print("Sound Level:", sound_level)
-        else:
-            print("Failed to read sound level. Retrying...")
-        
+        # Test all channels (0 to 7) on the MCP3008
+        for channel in range(8):
+            level = read_channel(channel)
+            print(f"Channel {channel} Level:", level)
+
+            # Additional check: if level is 0, notify potential issue on that channel
+            if level == 0:
+                print(f"Warning: Channel {channel} reading is zero. Check sensor or wiring.")
+
+        # Delay between each round of readings
         time.sleep(1)  # Adjust the delay as needed
 
 except KeyboardInterrupt:
-    print("Program stopped by user")
-
-except Exception as e:
-    print("An unexpected error occurred:", e)
-
-try:
-    # Try the second chip-select (CS1)
-    spi.open(0, 1)
-    print("SPI device is available at bus 0, device 1 (CS1)")
-    # Perform a test read/write here if needed
-except FileNotFoundError:
-    print("No device found at /dev/spidev0.1")
+    print("SPI communication stopped")
 
 finally:
+    # Close the SPI connection properly
     spi.close()
+    print("SPI interface closed.")
+
+
+
+
 
 if __name__ == '__main__':
     main()
+    sensorsThread = threading.Thread(target=read_light_level)
+    sensorsThread.start()
+    pubnub.subscribe().channels(my_channel).execute()
     app.run(host='0.0.0.0', port=5000)
