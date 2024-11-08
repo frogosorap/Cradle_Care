@@ -1,19 +1,13 @@
 
-body{
-    font-family: "Open Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;  
+
+
+.container {
     height: 100%;
     background: white;
      max-width: clamp(320px, 90%, 1000px);
     font-size: 1.25rem;
     margin: auto;
-    
 
-}
-
-.container {
-    max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
     height: 100%;
