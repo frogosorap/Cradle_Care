@@ -45,6 +45,13 @@ def login_is_required(function):
 def landingpage():
     return render_template('landingpage.html')
 
+@app.route('/light')
+def light():
+    lux = read_light_level()
+    if lux is None:
+        lux = "Error reading light level"
+    return render_template('light.html', lux=lux)
+
 # #Cradle Care explanation page
 # @app.route('/explanation')
 # def explanation():
@@ -227,6 +234,14 @@ except KeyboardInterrupt:
 
 except Exception as e:
     print("An unexpected error occurred:", e)
+
+try:
+    # Try the second chip-select (CS1)
+    spi.open(0, 1)
+    print("SPI device is available at bus 0, device 1 (CS1)")
+    # Perform a test read/write here if needed
+except FileNotFoundError:
+    print("No device found at /dev/spidev0.1")
 
 finally:
     spi.close()
