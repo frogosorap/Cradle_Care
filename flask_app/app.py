@@ -1,5 +1,5 @@
 from flask import Flask, render_template,session, abort, redirect, request
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 # from smbus2 import SMBus # For I2C
 import time
 
@@ -29,7 +29,7 @@ client_secrets_file = os.path.join(pathlib.Path(__file__).parent, "client_secret
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes = ["https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/userinfo.email", "openid"],
-    redirect_uri = "http://127.0.0.1:5000/callback"
+    redirect_uri = "http://192.168.152.59:5000/callback"
 )
 
 def login_is_required(function):
@@ -44,9 +44,6 @@ def login_is_required(function):
 @app.route('/')
 def landingpage():
     return render_template('landingpage.html')
-
-
-
 
 # #Cradle Care explanation page
 # @app.route('/explanation')
@@ -94,7 +91,7 @@ def logout():
     return redirect("/")
 
 @app.route("/index")
-@login_is_required
+#@login_is_required
 def index():
     # return f"Hello{session["google_id"]} <a href='/logout'><button>Logout</button></a>"
     return render_template('index.html')
@@ -177,6 +174,8 @@ def main():
                 
             time.sleep(1)  # Delay for 1 second
 
+    
+
 # Let the parent set threshold values for the light sensor
 # If the light level is above the threshold, the servo will turn on
 
@@ -187,16 +186,51 @@ def main():
         servo.ChangeDutyCycle(7.5)  # Stop servo (set it to neutral position)
         servo.stop()
         GPIO.cleanup()  # Clean up GPIO on exit
+# Grove Sound Sensor
+#--------------------------------
+
+import spidev
+import time
+
+# Set up SPI communication
+spi = spidev.SpiDev()
+spi.open(0, 0)  # Open bus 0, device 0 (CE0)
+spi.max_speed_hz = 1350000  # Set the SPI clock speed
+
+# Function to read data from MCP3008
+def read_channel(channel):
+    try:
+        # Send start bit, single-ended bit, and channel bits
+        adc = spi.xfer2([1, (8 + channel) << 4, 0])
+        # Process returned bits to get the 10-bit ADC value
+        data = ((adc[1] & 3) << 8) + adc[2]
+        return data
+    except IOError as e:
+        print("SPI Communication Error:", e)
+        return None  # Return None if there's an error in reading data
+
+try:
+    while True:
+        # Read sound level from channel 0 (where SIG is connected)
+        sound_level = read_channel(0)
+        
+        # Check if sound_level is None (error in reading)
+        if sound_level is not None:
+            print("Sound Level:", sound_level)
+        else:
+            print("Failed to read sound level. Retrying...")
+        
+        time.sleep(1)  # Adjust the delay as needed
+
+except KeyboardInterrupt:
+    print("Program stopped by user")
+
+except Exception as e:
+    print("An unexpected error occurred:", e)
+
+finally:
+    spi.close()
 
 if __name__ == '__main__':
     main()
-
-    
-    
-    
-    
-    #try:
-        # app.run(host='192.168.152.59', port=5000)
-    #main()
-    # finally:
-    #     GPIO.cleanup()  # Clean up GPIO on exit
+    app.run(host='0.0.0.0', port=5000)
