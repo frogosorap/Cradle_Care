@@ -1,0 +1,89 @@
+let aliveSecond = 0;
+let heartbeatRate = 2000;
+
+var myChannel = "Cradle_Care_Channel";
+
+function time()
+{
+	let d = new Date();
+	var currentSecond = d.getTime();
+	if(currentSecond - aliveSecond > heartbeatRate + 1000)
+	{
+		document.getElementById("connection_id").innerHTML="Dead";
+	}
+	else
+	{			
+		document.getElementById("connection_id").innerHTML="Alive";
+	}
+	setTimeout('time()', 1000);
+}
+
+function keepAlive()
+{
+	fetch('/keep_alive')
+	.then(response=>{
+		if(response.ok){
+			let date = new Date();
+			aliveSecond = date.getTime();
+			return response.json();
+		}
+		throw new Error("Server offline");
+	})
+	.then(responseJson => {
+		if(responseJson.motion == 1){
+			document.getElementById("motion_id").innerHTML = "Motion Detected";
+		}
+		else{
+			document.getElementById("motion_id").innerHTML = "No Motion Detected";
+		}
+	})		 
+	.catch(error=>console.log(error));
+	setTimeout('keepAlive()', heartbeatRate);
+}
+
+function handleClick(cb)
+{
+	if(cb.checked)
+	{
+		value = "on";
+	}
+	else
+	{
+		value = "off";
+	}
+	sendEvent(cb.id + "-"+value);
+}
+
+function sendEvent(value)
+{
+	fetch("/status="+value,
+		{
+			method: "POST",
+		})
+}
+
+const pubnub = new PubNub({
+    publishKey: PUBNUB_SUBSCRIBE_KEY,
+    subscribeKey: PUBNUB_SUBSCRIBE_KEY,
+    uuid: myChannel
+});
+
+pubnub.addListener({
+    message: function(event) {
+        if (statusEvent.category === "PNConnectedCategory") {
+            publishSampleMessage();
+        }
+    },
+    message: function(event) {
+        console.log(event.message);
+        console.log(event.message.title);
+        console.log(event.message.description);
+    },
+    presence: function(event) {
+        console.log(event);
+    }
+});
+
+pubnub.subscribe({
+    channels:[myChannel]
+})

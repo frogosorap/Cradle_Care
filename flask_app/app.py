@@ -83,6 +83,18 @@ def login_is_required(function):
 def landingpage():
     return render_template('landingpage.html')
 
+alive = 0
+data = {}
+
+@app.route("/keep_alive")
+def keep_alive():
+    global alive, data
+    alive += 1
+    keep_alive_count = str(alive)
+    data['keep_alive'] = keep_alive_count
+    parsed_json = json.dumps(data)
+    return str(parsed_json)
+
 lux_readings = []  # Global list to store lux readings
 
 @app.route('/light')

@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Light Sensor</title>
+    <script src="static/js/main.js"></script>
+    <script src ="https://cdn.pubnub.com/sdk/javascript/pubnub.8.2.10.min.js"></script>
 </head>
-<body>
+<!-- <body>
     <h1>Light Sensor Reading</h1>
     <ul>
         {% for reading in lux_readings %}
             <li>{{ reading }} lux</li>
         {% endfor %}
     </ul>
+</body> -->
+<body onload="keepAlive(); time();">
+    <main>
+        <h1>Sensors</h1>
+        <h3>Connection: <span id="connection_id">...</span></h3>
+        <h3>Light: <span id="light_id">...</span></h3>
+        <input type="checkbox" id="buzzer" onclick="handleClick(this);"/>
+        <label for="buzzer">Buzzer On</label>
+    </main>
 </body>
 </html>
