@@ -1,0 +1,81 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    gap: 20px; 
+    padding: 20px;
+}
+
+.column {
+    flex: 1;
+    max-width: 200px; 
+}
+
+.card {
+    background-color: #a189e4; 
+    border: 2px solid black;
+    border-radius: 10px;
+    text-align: center;
+    padding: 20px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.card:nth-child(1) {
+    background-color: #a189e4;
+}
+
+.card:nth-child(2) {
+    background-color: #b494f5; 
+}
+
+.card:nth-child(3) {
+    background-color: #f5a6b6; 
+}
+
+.card h3 {
+    font-size: 25px;
+    margin-bottom: 20px;
+}
+
+.card img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+}
+
+.card button {
+    background-color: rgba(0, 0, 0, 0.2); 
+    color: white;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    width: 80%;
+    max-width: 100px;
+    text-align: center;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card button:hover {
+    background-color: #333;
+    transform: scale(1.05);
+}
