@@ -108,7 +108,7 @@ def alert():
     
 if __name__ == '__main__':
     # try:
-        app.run(host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=5000, debug="on")
     # finally:
         # GPIO.cleanup()  # Clean up GPIO on exit
 
